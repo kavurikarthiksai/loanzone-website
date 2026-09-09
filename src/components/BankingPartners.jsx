@@ -1,11 +1,12 @@
 import React from 'react';
-import { CheckCircle2, Building, ShieldCheck, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, ArrowRight } from 'lucide-react';
 import { bankingPartners, partnerChecklist } from '../data/bankingPartners';
+import { BankLogo } from './BankLogos';
 import { Link } from 'react-router-dom';
 
 export const BankingPartners = () => {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-white" id="partners">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -29,21 +30,21 @@ export const BankingPartners = () => {
             {bankingPartners.map((bank, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-blue-300 hover:shadow-soft transition-all duration-200 flex flex-col justify-between group"
+                className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/60 hover:bg-white hover:border-blue-300 hover:shadow-soft transition-all duration-300 flex flex-col justify-between group"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#063B73] font-black text-xs shadow-2xs group-hover:scale-105 transition-transform">
-                    {bank.code.substring(0, 3)}
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="group-hover:scale-105 transition-transform">
+                    <BankLogo code={bank.code} className="w-9 h-9" />
                   </div>
-                  <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                  <span className="text-[11px] font-extrabold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md whitespace-nowrap">
                     {bank.rate}
                   </span>
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 text-sm group-hover:text-[#063B73] transition-colors leading-tight">
+                  <h4 className="font-extrabold text-slate-900 text-sm group-hover:text-[#063B73] transition-colors leading-tight">
                     {bank.name}
                   </h4>
-                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
+                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
                     {bank.highlight}
                   </p>
                 </div>
@@ -52,7 +53,7 @@ export const BankingPartners = () => {
           </div>
 
           {/* Right Column: Special Lending Benefits Checklist (4 cols on lg) */}
-          <div className="lg:col-span-4 bg-gradient-to-br from-[#063B73] to-[#04244B] rounded-2xl p-7 text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
+          <div className="lg:col-span-4 bg-gradient-to-br from-[#063B73] to-[#04244B] rounded-3xl p-7 sm:p-8 text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
             {/* Subtle decorative glow */}
             <div className="absolute -top-16 -right-16 w-36 h-36 bg-blue-400/15 rounded-full blur-2xl"></div>
 
@@ -88,7 +89,7 @@ export const BankingPartners = () => {
             <div className="pt-8">
               <Link
                 to="/eligibility"
-                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold rounded-xl text-sm transition-all shadow-md active:scale-95"
+                className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold rounded-xl text-sm transition-all shadow-md active:scale-95"
               >
                 <span>Check Your Lender Eligibility</span>
                 <ArrowRight className="w-4 h-4" />
