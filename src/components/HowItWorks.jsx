@@ -1,31 +1,37 @@
 import React from 'react';
-import { Laptop, FileSpreadsheet, Gift, Banknote, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {
+  ThreeDOnlineApply,
+  ThreeDUploadDocs,
+  ThreeDOffers,
+  ThreeDDisbursal
+} from './ThreeDIcons';
 
 export const HowItWorks = () => {
   const steps = [
     {
       num: "01",
-      icon: Laptop,
+      iconComponent: ThreeDOnlineApply,
       title: "Apply Online",
       desc: "Fill in basic personal and employment details in under 2 minutes through our secure digital form."
     },
     {
       num: "02",
-      icon: FileSpreadsheet,
+      iconComponent: ThreeDUploadDocs,
       title: "Share Required Details",
       desc: "Upload basic KYC and salary slips or bank statements for automated instantaneous profile evaluation."
     },
     {
       num: "03",
-      icon: Gift,
+      iconComponent: ThreeDOffers,
       title: "Get Loan Offers",
       desc: "Receive pre-qualified quotes from multiple lending partners with transparent interest rates and fees."
     },
     {
       num: "04",
-      icon: Banknote,
-      title: "Complete & Disbursal",
+      iconComponent: ThreeDDisbursal,
+      title: "Instant Disbursal",
       desc: "Sign your digital loan sanction agreement and have funds wired directly into your active bank account."
     }
   ];
@@ -36,7 +42,7 @@ export const HowItWorks = () => {
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block px-3.5 py-1 bg-blue-50 text-[#063B73] font-bold text-xs uppercase tracking-wider rounded-full mb-3">
+          <span className="inline-block px-3.5 py-1 bg-blue-50 text-[#063B73] font-bold text-xs uppercase tracking-wider rounded-full mb-3 border border-blue-100">
             Simple 4-Step Journey
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#063B73] tracking-tight">
@@ -52,30 +58,32 @@ export const HowItWorks = () => {
           {/* Connecting line on desktop */}
           <div className="hidden lg:block absolute top-1/2 left-12 right-12 h-1 bg-gradient-to-r from-blue-200 via-orange-300 to-emerald-400 -translate-y-6 z-0"></div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 relative z-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 relative z-10">
             {steps.map((step, idx) => {
-              const Icon = step.icon;
+              const IconComp = step.iconComponent;
               return (
                 <div
                   key={idx}
-                  className="bg-white rounded-2xl p-6 sm:p-7 shadow-soft border border-slate-100 hover:border-blue-300 transition-all duration-300 flex flex-col items-start relative group"
+                  className="bg-white rounded-3xl p-6 sm:p-7 shadow-soft border border-slate-100 hover:border-blue-300 hover:shadow-premium transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between relative group"
                 >
-                  {/* Step Number Badge */}
-                  <div className="flex items-center justify-between w-full mb-5">
-                    <div className="w-12 h-12 rounded-2xl bg-[#063B73] text-white flex items-center justify-center group-hover:bg-[#F97316] transition-colors shadow-sm">
-                      <Icon className="w-6 h-6" />
+                  <div>
+                    {/* Step Icon & Number Badge */}
+                    <div className="flex items-center justify-between w-full mb-5">
+                      <div className="transform group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-300 drop-shadow-md">
+                        <IconComp className="w-14 h-14" />
+                      </div>
+                      <span className="text-3xl font-black text-slate-200 group-hover:text-blue-300 transition-colors">
+                        {step.num}
+                      </span>
                     </div>
-                    <span className="text-3xl font-black text-slate-200 group-hover:text-orange-200 transition-colors">
-                      {step.num}
-                    </span>
-                  </div>
 
-                  <h3 className="font-bold text-slate-900 text-lg mb-2 group-hover:text-[#063B73] transition-colors">
-                    {step.title}
-                  </h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">
-                    {step.desc}
-                  </p>
+                    <h3 className="font-extrabold text-slate-900 text-lg mb-2 group-hover:text-[#063B73] transition-colors">
+                      {step.title}
+                    </h3>
+                    <p className="text-slate-500 text-sm leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </div>
                 </div>
               );
             })}

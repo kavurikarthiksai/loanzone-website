@@ -143,7 +143,7 @@ export const LoanProducts = () => {
                   <WhatsAppButton
                     text="Inquire via WhatsApp"
                     message={`Hi LoanZone, I am interested in exploring terms for ${p.title}.`}
-                    variant="outline"
+                    variant="primary"
                     size="md"
                     className="w-full sm:w-1/2"
                   />

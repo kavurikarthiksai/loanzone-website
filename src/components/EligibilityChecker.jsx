@@ -3,7 +3,7 @@ import { ShieldCheck, CheckCircle, AlertCircle, ArrowRight, UserCheck, RefreshCw
 import { Link } from 'react-router-dom';
 import { WhatsAppButton } from './WhatsAppButton';
 
-export const EligibilityChecker = () => {
+export const EligibilityChecker = ({ showHeader = true }) => {
   const [formData, setFormData] = useState({
     employmentType: 'Salaried',
     monthlyIncome: '',
@@ -85,21 +85,23 @@ export const EligibilityChecker = () => {
   };
 
   return (
-    <section className="py-20 bg-slate-50 border-t border-slate-200/70" id="eligibility">
+    <section className={`${showHeader ? 'py-20 border-t border-slate-200/70' : 'pb-12'} bg-slate-50`} id="eligibility">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <span className="inline-block px-3.5 py-1 bg-blue-50 text-[#063B73] font-bold text-xs uppercase tracking-wider rounded-full mb-3">
-            Instant Assessment
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#063B73] tracking-tight">
-            Check Loan Eligibility in 60 Seconds
-          </h2>
-          <p className="mt-3 text-slate-600 text-base sm:text-lg">
-            Find out your maximum borrowing capacity and matched lender criteria without affecting your credit score.
-          </p>
-        </div>
+        {/* Header - shown only when showHeader is true */}
+        {showHeader && (
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <span className="inline-block px-3.5 py-1 bg-blue-50 text-[#063B73] font-bold text-xs uppercase tracking-wider rounded-full mb-3 border border-blue-100">
+              Instant Assessment
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#063B73] tracking-tight">
+              Check Loan Eligibility in 60 Seconds
+            </h2>
+            <p className="mt-3 text-slate-600 text-base sm:text-lg">
+              Find out your maximum borrowing capacity and matched lender criteria without affecting your credit score.
+            </p>
+          </div>
+        )}
 
         <div className="max-w-3xl mx-auto bg-white rounded-3xl p-6 sm:p-10 shadow-soft border border-slate-200/80">
           
@@ -280,7 +282,7 @@ export const EligibilityChecker = () => {
                 <WhatsAppButton
                   text="Verify with Advisor"
                   message={`Hi LoanZone, I ran an eligibility check for ₹${result.desiredAmount}. My indicative eligibility was ₹${result.maxEligibleAmount}. Please assist me with bank offers.`}
-                  variant="outline"
+                  variant="primary"
                   size="md"
                 />
               </div>

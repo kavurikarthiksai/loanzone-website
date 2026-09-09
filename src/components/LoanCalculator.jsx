@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Calculator, IndianRupee, Calendar, Percent, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export const LoanCalculator = () => {
+export const LoanCalculator = ({ showHeader = true }) => {
   const [amount, setAmount] = useState(500000);
   const [interestRate, setInterestRate] = useState(10.5);
   const [tenureYears, setTenureYears] = useState(3);
@@ -47,17 +47,19 @@ export const LoanCalculator = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <span className="inline-block px-3.5 py-1 bg-orange-100 text-[#F97316] font-bold text-xs uppercase tracking-wider rounded-full mb-3">
-            Financial Planning
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#063B73] tracking-tight">
-            Personal Loan EMI Calculator
-          </h2>
-          <p className="mt-3 text-slate-600 text-base sm:text-lg">
-            Estimate your monthly installments and customize repayment schedule to match your budget.
-          </p>
-        </div>
+        {showHeader && (
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <span className="inline-block px-3.5 py-1 bg-orange-100 text-[#F97316] font-bold text-xs uppercase tracking-wider rounded-full mb-3 border border-orange-200">
+              Financial Planning
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#063B73] tracking-tight">
+              Personal Loan EMI Calculator
+            </h2>
+            <p className="mt-3 text-slate-600 text-base sm:text-lg">
+              Estimate your monthly installments and customize repayment schedule to match your budget.
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           

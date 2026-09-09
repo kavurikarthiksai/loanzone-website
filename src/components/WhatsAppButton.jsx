@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageCircle } from 'lucide-react';
+import { WhatsAppIcon } from './WhatsAppIcon';
 import { CONFIG, getWhatsAppLink } from '../config/config';
 
 export const WhatsAppButton = ({
@@ -21,9 +21,9 @@ export const WhatsAppButton = ({
   };
 
   const variantStyles = {
-    primary: "bg-[#16A34A] hover:bg-[#15803D] text-white",
-    outline: "border-2 border-[#16A34A] text-[#16A34A] hover:bg-emerald-50 bg-white",
-    floating: "bg-[#25D366] hover:bg-[#1da851] text-white fixed bottom-6 right-6 z-40 shadow-xl hover:scale-105"
+    primary: "bg-[#25D366] hover:bg-[#1EBE5D] text-white shadow-md shadow-emerald-600/25",
+    outline: "bg-[#25D366] hover:bg-[#1EBE5D] text-white shadow-md shadow-emerald-600/25",
+    floating: "bg-[#25D366] hover:bg-[#1EBE5D] text-white fixed bottom-6 right-6 z-40 shadow-xl hover:scale-105"
   };
 
   return (
@@ -34,7 +34,7 @@ export const WhatsAppButton = ({
       className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
       aria-label="Chat on WhatsApp"
     >
-      <MessageCircle className={`${size === 'lg' ? 'w-5 h-5' : size === 'sm' ? 'w-4 h-4' : 'w-5 h-5'} shrink-0`} />
+      <WhatsAppIcon className={`${size === 'lg' ? 'w-5 h-5' : size === 'sm' ? 'w-4 h-4' : 'w-5 h-5'} shrink-0`} />
       {variant !== 'floating' && <span>{text}</span>}
     </a>
   );

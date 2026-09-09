@@ -64,7 +64,7 @@ export const About = () => {
               <WhatsAppButton
                 text="Speak with an Advisor"
                 size="md"
-                variant="outline"
+                variant="primary"
               />
             </div>
           </div>

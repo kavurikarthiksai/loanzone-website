@@ -6,6 +6,7 @@ import {
 import { initialCampaigns, initialTemplates } from '../../data/adminData';
 import { getStoredCampaigns, saveStoredCampaigns } from '../../utils/storage';
 import { useToast } from '../../context/ToastContext';
+import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 
 export const Dashboard = () => {
   const { addToast } = useToast();
@@ -98,9 +99,9 @@ Reply YES to know more.`
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            WhatsApp Cloud API: Active
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-full border border-emerald-200 shadow-2xs">
+            <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
+            <span>WhatsApp Cloud API: Active</span>
           </span>
         </div>
       </div>
@@ -189,7 +190,7 @@ Reply YES to know more.`
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#16A34A] flex items-center justify-center font-black">
-                  <Send className="w-5 h-5" />
+                  <WhatsAppIcon className="w-5 h-5 text-[#25D366]" />
                 </div>
                 <div>
                   <h2 className="text-lg font-extrabold text-slate-900">Send WhatsApp Campaign</h2>
@@ -264,11 +265,11 @@ Reply YES to know more.`
 
                 {/* WhatsApp simulated chat bubble */}
                 <div className="bg-[#EFEAE2] p-4 rounded-2xl border border-[#DAD2C7] shadow-inner relative">
-                  <div className="max-w-md bg-white rounded-2xl p-4 shadow-sm text-xs sm:text-sm text-slate-800 space-y-2 border-l-4 border-[#16A34A] whitespace-pre-line leading-relaxed font-sans">
+                  <div className="max-w-md bg-white rounded-2xl p-4 shadow-sm text-xs sm:text-sm text-slate-800 space-y-2 border-l-4 border-[#25D366] whitespace-pre-line leading-relaxed font-sans">
                     {messageBody}
                     <div className="text-[10px] text-slate-400 text-right flex items-center justify-end gap-1 pt-1">
                       <span>11:30 AM</span>
-                      <Check className="w-3 h-3 text-[#16A34A]" />
+                      <Check className="w-3 h-3 text-[#25D366]" />
                     </div>
                   </div>
                 </div>
@@ -304,7 +305,7 @@ Reply YES to know more.`
                   </div>
                   <div className="w-full h-2 bg-emerald-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#16A34A] transition-all duration-300"
+                      className="h-full bg-[#25D366] transition-all duration-300"
                       style={{ width: `${sendProgress}%` }}
                     ></div>
                   </div>
@@ -315,7 +316,7 @@ Reply YES to know more.`
               <button
                 type="submit"
                 disabled={isSending}
-                className="w-full py-3.5 px-6 bg-[#16A34A] hover:bg-[#15803D] text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 cursor-pointer"
+                className="w-full py-3.5 px-6 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 cursor-pointer"
               >
                 {isSending ? (
                   <>
@@ -324,8 +325,8 @@ Reply YES to know more.`
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
-                    <span>Send Campaign ({selectedAudience})</span>
+                    <WhatsAppIcon className="w-4 h-4" />
+                    <span>Send WhatsApp Campaign ({selectedAudience})</span>
                   </>
                 )}
               </button>
@@ -358,19 +359,19 @@ Reply YES to know more.`
                     strokeWidth="12"
                     fill="transparent"
                   />
-                  {/* Delivered: 86% -> strokeDasharray = 251.2 * 0.86 = 216 */}
+                  {/* Delivered: 86% */}
                   <circle
                     cx="50"
                     cy="50"
                     r="40"
-                    stroke="#16A34A"
+                    stroke="#25D366"
                     strokeWidth="12"
                     strokeDasharray="216 251.2"
                     strokeDashoffset="0"
                     fill="transparent"
                     className="transition-all duration-1000"
                   />
-                  {/* Pending: 7% -> 17.5 */}
+                  {/* Pending: 7% */}
                   <circle
                     cx="50"
                     cy="50"
@@ -381,7 +382,7 @@ Reply YES to know more.`
                     strokeDashoffset="-216"
                     fill="transparent"
                   />
-                  {/* Failed: 7% -> 17.5 */}
+                  {/* Failed: 7% */}
                   <circle
                     cx="50"
                     cy="50"
@@ -406,9 +407,9 @@ Reply YES to know more.`
               <div className="space-y-3 flex-1 w-full text-xs">
                 <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-50/70 border border-emerald-100">
                   <span className="flex items-center gap-2 font-bold text-slate-700">
-                    <span className="w-3 h-3 rounded-full bg-[#16A34A]"></span> Delivered
+                    <span className="w-3 h-3 rounded-full bg-[#25D366]"></span> Delivered
                   </span>
-                  <span className="font-extrabold text-[#16A34A]">840 (86%)</span>
+                  <span className="font-extrabold text-[#15803D]">840 (86%)</span>
                 </div>
 
                 <div className="flex items-center justify-between p-2 rounded-xl bg-amber-50/70 border border-amber-100">
@@ -430,13 +431,18 @@ Reply YES to know more.`
           </div>
 
           {/* GREEN INFORMATION CARD: Grow Your Business with WhatsApp Automation */}
-          <div className="bg-gradient-to-br from-[#16A34A] to-[#15803D] rounded-3xl p-7 text-white shadow-lg relative overflow-hidden">
+          <div className="bg-gradient-to-br from-[#1EBE5D] via-[#16A34A] to-[#15803D] rounded-3xl p-7 text-white shadow-lg relative overflow-hidden">
             {/* Subtle glow */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
 
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 rounded-full text-xs font-bold text-white mb-3 backdrop-blur-xs">
-              <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-              High Conversion Engine
+            <div className="flex items-center justify-between mb-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 rounded-full text-xs font-bold text-white backdrop-blur-xs">
+                <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+                High Conversion Engine
+              </div>
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white">
+                <WhatsAppIcon className="w-4 h-4" />
+              </div>
             </div>
 
             <h3 className="text-xl sm:text-2xl font-black mb-2 leading-tight">
@@ -506,7 +512,7 @@ Reply YES to know more.`
                 <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="py-4 px-3 font-bold text-slate-900">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#16A34A]"></div>
+                      <div className="w-2 h-2 rounded-full bg-[#25D366]"></div>
                       <span>{c.name}</span>
                     </div>
                   </td>
