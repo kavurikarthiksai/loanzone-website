@@ -11,7 +11,7 @@ export const WhatsAppButton = ({
 }) => {
   const href = getWhatsAppLink(message);
 
-  const baseStyles = "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md active:scale-95";
+  const baseStyles = "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md active:scale-95 whitespace-nowrap";
   
   const sizeStyles = {
     sm: "px-3.5 py-2 text-xs gap-1.5",
