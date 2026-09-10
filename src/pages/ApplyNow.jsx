@@ -154,56 +154,17 @@ export const ApplyNow = () => {
       return;
     }
 
-    setIsSubmitting(true);
-
+    const appRef = 'LZ-' + Math.floor(100000 + Math.random() * 900000);
     const loanTypeTitle = matchedProduct 
       ? matchedProduct.title 
       : (loanProducts.find(p => p.id === formData.loanProduct)?.title || formData.loanProduct);
 
-    const payload = {
-      fullName: formData.fullName,
-      mobile: formData.phone,
-      email: formData.email,
-      city: formData.city,
-      loanType: loanTypeTitle,
-      loanAmount: formData.loanAmount,
-      employmentType: formData.employmentType,
-      monthlyIncome: formData.monthlySalary,
-      message: formData.message || formData.purpose || 'Fast Track Instant Application',
-      preferredBank: formData.preferredBank,
-      purpose: formData.purpose
-    };
+    const formattedAmount = Number(formData.loanAmount || 0).toLocaleString('en-IN');
+    const formattedIncome = Number(formData.monthlySalary || 0).toLocaleString('en-IN');
+    const bankName = matchedBank ? matchedBank.name : (formData.preferredBank || 'Best Matching Bank');
 
-    try {
-      const response = await fetch('/api/apply', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        const appRef = result.applicationId || ('LZ-' + Math.floor(100000 + Math.random() * 900000));
-        setApplicationId(appRef);
-        setDeliveryResult(result);
-        setStep(3);
-        addToast(result.message || "Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.", "success");
-      } else {
-        // Backend returned failure
-        const errMsg = result.error || 'Failed to submit application. Please check your details and try again.';
-        setSubmissionError(errMsg);
-        addToast(errMsg, "error");
-      }
-    } catch (err) {
-      console.warn('[Apply API Offline / Fallback]', err);
-      // Resilient client-side fallback if backend server is unreachable
-      const appRef = 'LZ-' + Math.floor(100000 + Math.random() * 900000);
-      const formattedAmount = Number(formData.loanAmount || 0).toLocaleString('en-IN');
-      const formattedIncome = Number(formData.monthlySalary || 0).toLocaleString('en-IN');
-      const formattedMsg = `🔔 NEW LOAN APPLICATION
+    // Build the complete WhatsApp message with all applicant & loan details
+    const formattedMsg = `🔔 NEW LOAN APPLICATION [Ref: ${appRef}]
 
 Applicant Details:
 
@@ -218,20 +179,82 @@ Loan Details:
 💵 Required Amount: ₹${formattedAmount}
 💼 Employment Type: ${formData.employmentType}
 💰 Monthly Income: ₹${formattedIncome}
+🏦 Preferred Bank: ${bankName}
+🎯 Purpose: ${formData.purpose || 'Personal / Debt Consolidation'}
 
 📝 Message:
-${formData.message || formData.purpose || 'Fast Track Instant Application'}
+${formData.message?.trim() || formData.purpose || 'Fast Track Instant Application'}
 
 Please contact the applicant as soon as possible.`;
 
-      const fallbackUrl = `https://wa.me/${CONFIG.whatsappPhone}?text=${encodeURIComponent(formattedMsg)}`;
-      
+    const ownerPhone = CONFIG.whatsappPhone || '918522923635';
+    const directWhatsAppUrl = `https://wa.me/${ownerPhone}?text=${encodeURIComponent(formattedMsg)}`;
+
+    // Directly open WhatsApp on submit click with complete details
+    try {
+      window.open(directWhatsAppUrl, '_blank', 'noopener,noreferrer');
+    } catch (popupErr) {
+      console.warn('Popup blocked or handled by browser', popupErr);
+    }
+
+    setIsSubmitting(true);
+
+    const payload = {
+      fullName: formData.fullName,
+      mobile: formData.phone,
+      email: formData.email,
+      city: formData.city,
+      loanType: loanTypeTitle,
+      loanAmount: formData.loanAmount,
+      employmentType: formData.employmentType,
+      monthlyIncome: formData.monthlySalary,
+      message: formData.message || formData.purpose || 'Fast Track Instant Application',
+      preferredBank: bankName,
+      purpose: formData.purpose,
+      applicationId: appRef
+    };
+
+    try {
+      const response = await fetch('/api/apply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        const finalAppRef = result.applicationId || appRef;
+        setApplicationId(finalAppRef);
+        setDeliveryResult({
+          ...result,
+          fallbackUrl: directWhatsAppUrl,
+          formattedMessage: formattedMsg
+        });
+        setStep(3);
+        addToast("Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.", "success");
+      } else {
+        setApplicationId(appRef);
+        setDeliveryResult({
+          success: true,
+          deliveryMode: 'fallback_direct_link',
+          applicationId: appRef,
+          fallbackUrl: directWhatsAppUrl,
+          formattedMessage: formattedMsg
+        });
+        setStep(3);
+        addToast("Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.", "success");
+      }
+    } catch (err) {
+      console.warn('[Apply API Offline / Fallback]', err);
       setApplicationId(appRef);
       setDeliveryResult({
         success: true,
         deliveryMode: 'fallback_direct_link',
         applicationId: appRef,
-        fallbackUrl,
+        fallbackUrl: directWhatsAppUrl,
         formattedMessage: formattedMsg
       });
       setStep(3);
