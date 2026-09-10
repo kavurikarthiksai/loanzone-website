@@ -36,8 +36,8 @@ export const BankingPartners = () => {
                 <div>
                   {/* Top Row: Official Bank Logo & Interest Rate Badge */}
                   <div className="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-slate-100">
-                    <div className="h-8 flex items-center group-hover:scale-102 transition-transform">
-                      <BankLogo code={bank.code} className="h-7 max-w-[150px] w-auto" />
+                    <div className="flex items-center group-hover:scale-102 transition-transform">
+                      <BankLogo code={bank.code} />
                     </div>
                     <div className="text-right shrink-0">
                       <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">Starting</span>
