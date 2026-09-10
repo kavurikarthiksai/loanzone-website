@@ -14,7 +14,7 @@ const bankLogoMap = {
   AXIS: {
     src: '/images/banks/axis.svg',
     alt: 'Axis Bank',
-    sizeClass: 'h-[30px]',
+    sizeClass: 'h-[32px]',
   },
   INDUS: {
     src: '/images/banks/indusind.svg',
@@ -24,7 +24,7 @@ const bankLogoMap = {
   IDFC: {
     src: '/images/banks/idfc.svg',
     alt: 'IDFC FIRST Bank',
-    sizeClass: 'h-[30px]',
+    sizeClass: 'h-[36px]',
   },
   BANDHAN: {
     src: '/images/banks/bandhan.svg',
@@ -39,7 +39,7 @@ const bankLogoMap = {
   SBI: {
     src: '/images/banks/sbi.svg',
     alt: 'State Bank of India',
-    sizeClass: 'h-[28px]',
+    sizeClass: 'h-[26px]',
   },
 };
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Hero } from '../components/Hero';
 import { FeatureHighlights } from '../components/FeatureHighlights';
 import { BankingPartners } from '../components/BankingPartners';
+import { SpecialOffers } from '../components/SpecialOffers';
 import { LoanOptions } from '../components/LoanOptions';
 import { WhyLoanZone } from '../components/WhyLoanZone';
 import { HowItWorks } from '../components/HowItWorks';
@@ -16,6 +17,7 @@ export const Home = () => {
       <Hero />
       <FeatureHighlights />
       <BankingPartners />
+      <SpecialOffers />
       <LoanOptions />
       <WhyLoanZone />
       <HowItWorks />
