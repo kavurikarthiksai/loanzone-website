@@ -4,12 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"CLIENT,SERVER\" -c \"cyan.bold,green.bold\" \"vite\" \"node server/index.js\"",
+    "dev:client": "vite",
+    "server": "node server/index.js",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "lucide-react": "^1.43.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -20,6 +25,7 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "autoprefixer": "^10.5.5",
+    "concurrently": "^10.0.5",
     "oxlint": "^1.79.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^3.4.19",

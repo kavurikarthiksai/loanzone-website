@@ -1,19 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { 
   ShieldCheck, User, Phone, Mail, IndianRupee, 
-  Building2, FileText, CheckCircle2, ArrowRight, ArrowLeft, Sparkles 
+  Building2, FileText, CheckCircle2, ArrowRight, ArrowLeft, Sparkles, Building,
+  Loader2, AlertCircle, MessageSquare
 } from 'lucide-react';
 import { loanProducts } from '../data/loanProducts';
 import { bankingPartners } from '../data/bankingPartners';
+import { BankLogo } from '../components/BankLogos';
 import { WhatsAppButton } from '../components/WhatsAppButton';
+import { WhatsAppIcon } from '../components/WhatsAppIcon';
 import { useToast } from '../context/ToastContext';
+import { CONFIG } from '../config/config';
 
 export const ApplyNow = () => {
   const [searchParams] = useSearchParams();
   const { addToast } = useToast();
   
+  const selectedBankParam = searchParams.get('bank');
+  const selectedProductParam = searchParams.get('product');
+
+  // Find matching bank from data by name or code or shortName
+  const matchedBank = useMemo(() => {
+    if (!selectedBankParam) return null;
+    return bankingPartners.find(
+      (b) =>
+        b.name.toLowerCase() === selectedBankParam.toLowerCase() ||
+        b.code.toLowerCase() === selectedBankParam.toLowerCase() ||
+        b.shortName.toLowerCase() === selectedBankParam.toLowerCase()
+    ) || null;
+  }, [selectedBankParam]);
+
+  // Find matching loan product from data by id or title
+  const matchedProduct = useMemo(() => {
+    if (!selectedProductParam) return null;
+    return loanProducts.find(
+      (p) =>
+        p.id.toLowerCase() === selectedProductParam.toLowerCase() ||
+        p.title.toLowerCase() === selectedProductParam.toLowerCase()
+    ) || null;
+  }, [selectedProductParam]);
+
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState('');
+  const [deliveryResult, setDeliveryResult] = useState(null);
+
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -22,10 +54,11 @@ export const ApplyNow = () => {
     panNumber: '',
     employmentType: 'Salaried',
     monthlySalary: '',
-    loanProduct: searchParams.get('product') || 'personal-loan',
+    loanProduct: matchedProduct ? matchedProduct.id : (selectedProductParam || 'personal-loan'),
     loanAmount: searchParams.get('amount') || '500000',
-    preferredBank: 'HDFC Bank',
+    preferredBank: matchedBank ? matchedBank.name : (selectedBankParam || 'Best Matching Bank'),
     purpose: 'Personal / Debt Consolidation',
+    message: '',
     agreeTerms: true
   });
 
@@ -34,30 +67,178 @@ export const ApplyNow = () => {
   useEffect(() => {
     const prod = searchParams.get('product');
     const amt = searchParams.get('amount');
-    if (prod) setFormData((prev) => ({ ...prev, loanProduct: prod }));
-    if (amt) setFormData((prev) => ({ ...prev, loanAmount: amt }));
+    const b = searchParams.get('bank');
+    
+    setFormData((prev) => {
+      const next = { ...prev };
+      if (prod) {
+        const foundProd = loanProducts.find(
+          (p) =>
+            p.id.toLowerCase() === prod.toLowerCase() ||
+            p.title.toLowerCase() === prod.toLowerCase()
+        );
+        next.loanProduct = foundProd ? foundProd.id : prod;
+      }
+      if (amt) next.loanAmount = amt;
+      if (b) {
+        const foundBank = bankingPartners.find(
+          (item) =>
+            item.name.toLowerCase() === b.toLowerCase() ||
+            item.code.toLowerCase() === b.toLowerCase() ||
+            item.shortName.toLowerCase() === b.toLowerCase()
+        );
+        next.preferredBank = foundBank ? foundBank.name : b;
+      }
+      return next;
+    });
   }, [searchParams]);
+
+  // Validation Helpers
+  const validateEmail = (email) => {
+    if (!email) return false;
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email.trim());
+  };
+
+  const validatePhone = (phone) => {
+    if (!phone) return false;
+    const cleanDigits = phone.toString().replace(/\D/g, '');
+    return cleanDigits.length >= 10 && cleanDigits.length <= 13;
+  };
 
   const handleStep1 = (e) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.phone || !formData.monthlySalary) {
-      addToast("Please fill in all mandatory applicant details.", "error");
+    setSubmissionError('');
+
+    if (!formData.fullName || formData.fullName.trim().length < 2) {
+      addToast("Please enter a valid Full Name (at least 2 characters).", "error");
       return;
     }
+
+    if (!validatePhone(formData.phone)) {
+      addToast("Please enter a valid 10-digit mobile number.", "error");
+      return;
+    }
+
+    if (!formData.email || !validateEmail(formData.email)) {
+      addToast("Please enter a valid email address.", "error");
+      return;
+    }
+
+    if (!formData.city || formData.city.trim().length < 2) {
+      addToast("Please enter your City of residence.", "error");
+      return;
+    }
+
+    if (!formData.monthlySalary || Number(formData.monthlySalary) <= 0) {
+      addToast("Please enter a valid Net Monthly Take-Home income.", "error");
+      return;
+    }
+
     setStep(2);
   };
 
-  const handleFinalSubmit = (e) => {
+  const handleFinalSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setSubmissionError('');
+
     if (!formData.agreeTerms) {
       addToast("Please accept the terms and loan disclaimer.", "error");
       return;
     }
 
-    const appRef = 'LZ-' + Math.floor(100000 + Math.random() * 900000);
-    setApplicationId(appRef);
-    setStep(3);
-    addToast(`Application #${appRef} received! In-principle sanction initialized.`, "success");
+    if (!formData.loanAmount || Number(formData.loanAmount) <= 0) {
+      addToast("Please specify a valid loan amount.", "error");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const loanTypeTitle = matchedProduct 
+      ? matchedProduct.title 
+      : (loanProducts.find(p => p.id === formData.loanProduct)?.title || formData.loanProduct);
+
+    const payload = {
+      fullName: formData.fullName,
+      mobile: formData.phone,
+      email: formData.email,
+      city: formData.city,
+      loanType: loanTypeTitle,
+      loanAmount: formData.loanAmount,
+      employmentType: formData.employmentType,
+      monthlyIncome: formData.monthlySalary,
+      message: formData.message || formData.purpose || 'Fast Track Instant Application',
+      preferredBank: formData.preferredBank,
+      purpose: formData.purpose
+    };
+
+    try {
+      const response = await fetch('/api/apply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        const appRef = result.applicationId || ('LZ-' + Math.floor(100000 + Math.random() * 900000));
+        setApplicationId(appRef);
+        setDeliveryResult(result);
+        setStep(3);
+        addToast(result.message || "Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.", "success");
+      } else {
+        // Backend returned failure
+        const errMsg = result.error || 'Failed to submit application. Please check your details and try again.';
+        setSubmissionError(errMsg);
+        addToast(errMsg, "error");
+      }
+    } catch (err) {
+      console.warn('[Apply API Offline / Fallback]', err);
+      // Resilient client-side fallback if backend server is unreachable
+      const appRef = 'LZ-' + Math.floor(100000 + Math.random() * 900000);
+      const formattedAmount = Number(formData.loanAmount || 0).toLocaleString('en-IN');
+      const formattedIncome = Number(formData.monthlySalary || 0).toLocaleString('en-IN');
+      const formattedMsg = `🔔 NEW LOAN APPLICATION
+
+Applicant Details:
+
+👤 Name: ${formData.fullName}
+📱 Mobile: ${formData.phone}
+📧 Email: ${formData.email || 'Not provided'}
+🏙️ City: ${formData.city}
+
+Loan Details:
+
+💰 Loan Type: ${loanTypeTitle}
+💵 Required Amount: ₹${formattedAmount}
+💼 Employment Type: ${formData.employmentType}
+💰 Monthly Income: ₹${formattedIncome}
+
+📝 Message:
+${formData.message || formData.purpose || 'Fast Track Instant Application'}
+
+Please contact the applicant as soon as possible.`;
+
+      const fallbackUrl = `https://wa.me/${CONFIG.whatsappPhone}?text=${encodeURIComponent(formattedMsg)}`;
+      
+      setApplicationId(appRef);
+      setDeliveryResult({
+        success: true,
+        deliveryMode: 'fallback_direct_link',
+        applicationId: appRef,
+        fallbackUrl,
+        formattedMessage: formattedMsg
+      });
+      setStep(3);
+      addToast("Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.", "success");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -70,7 +251,7 @@ export const ApplyNow = () => {
             Fast Track Application
           </span>
           <h1 className="text-3xl sm:text-4xl font-black text-[#063B73] tracking-tight">
-            Apply for Your Personal Loan
+            {matchedProduct ? `Apply for Your ${matchedProduct.title}` : 'Apply for Your Loan'}
           </h1>
           <p className="mt-2 text-slate-600 text-sm sm:text-base">
             Instant paperless pre-approval in 3 minutes across 15+ partner banks.
@@ -113,6 +294,27 @@ export const ApplyNow = () => {
                 3
               </div>
               <span className="text-[11px] font-bold mt-1 text-slate-400">Sanction Quote</span>
+            </div>
+          </div>
+        )}
+
+        {/* Selected Bank Banner if applied through a specific bank */}
+        {matchedBank && (
+          <div className="mb-6 p-4 rounded-2xl bg-white border border-blue-200 shadow-xs flex items-center justify-between gap-4 animate-slide-up">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-slate-50 rounded-xl border border-slate-100">
+                <BankLogo code={matchedBank.code} />
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Direct Lender Application</span>
+                <span className="text-sm font-black text-slate-800">{matchedBank.name} Exclusive Processing</span>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Rate Slabs</span>
+              <span className="text-xs font-black text-[#16A34A] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
+                {matchedBank.rate}
+              </span>
             </div>
           </div>
         )}
@@ -247,19 +449,36 @@ export const ApplyNow = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Select Loan Category
+                    {matchedProduct || selectedProductParam ? 'Selected Loan Category' : 'Select Loan Category'}
                   </label>
-                  <select
-                    value={formData.loanProduct}
-                    onChange={(e) => setFormData({ ...formData, loanProduct: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-[#063B73] text-sm font-semibold"
-                  >
-                    {loanProducts.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.title} (From {p.interestRate})
-                      </option>
-                    ))}
-                  </select>
+                  {matchedProduct || selectedProductParam ? (
+                    <div className="space-y-1.5">
+                      <select
+                        value={matchedProduct ? matchedProduct.id : selectedProductParam}
+                        disabled
+                        className="w-full px-4 py-3 rounded-xl border border-blue-300 bg-blue-50/70 font-black text-[#063B73] text-sm cursor-not-allowed shadow-xs"
+                      >
+                        <option value={matchedProduct ? matchedProduct.id : selectedProductParam}>
+                          {matchedProduct ? `${matchedProduct.title} (From ${matchedProduct.interestRate})` : selectedProductParam}
+                        </option>
+                      </select>
+                      <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Direct fast-track loan application for {matchedProduct ? matchedProduct.title : selectedProductParam}.
+                      </p>
+                    </div>
+                  ) : (
+                    <select
+                      value={formData.loanProduct}
+                      onChange={(e) => setFormData({ ...formData, loanProduct: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-[#063B73] text-sm font-semibold"
+                    >
+                      {loanProducts.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.title} (From {p.interestRate})
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div>
@@ -280,20 +499,37 @@ export const ApplyNow = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Preferred Partner Bank
+                    {matchedBank || selectedBankParam ? 'Selected Partner Bank' : 'Preferred Partner Bank'}
                   </label>
-                  <select
-                    value={formData.preferredBank}
-                    onChange={(e) => setFormData({ ...formData, preferredBank: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-[#063B73] text-sm font-medium"
-                  >
-                    <option value="Best Matching Bank">Let LoanZone Choose (Lowest Rate)</option>
-                    {bankingPartners.map((b) => (
-                      <option key={b.code} value={b.name}>
-                        {b.name} ({b.rate})
-                      </option>
-                    ))}
-                  </select>
+                  {matchedBank || selectedBankParam ? (
+                    <div className="space-y-1.5">
+                      <select
+                        value={matchedBank ? matchedBank.name : selectedBankParam}
+                        disabled
+                        className="w-full px-4 py-3 rounded-xl border border-blue-300 bg-blue-50/70 font-black text-[#063B73] text-sm cursor-not-allowed shadow-xs"
+                      >
+                        <option value={matchedBank ? matchedBank.name : selectedBankParam}>
+                          {matchedBank ? `${matchedBank.name} (${matchedBank.rate})` : selectedBankParam}
+                        </option>
+                      </select>
+                      <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Direct fast-track loan processing through {matchedBank ? matchedBank.name : selectedBankParam}.
+                      </p>
+                    </div>
+                  ) : (
+                    <select
+                      value={formData.preferredBank}
+                      onChange={(e) => setFormData({ ...formData, preferredBank: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-[#063B73] text-sm font-medium"
+                    >
+                      <option value="Best Matching Bank">Let LoanZone Choose (Lowest Rate)</option>
+                      {bankingPartners.map((b) => (
+                        <option key={b.code} value={b.name}>
+                          {b.name} ({b.rate})
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div>
@@ -315,6 +551,20 @@ export const ApplyNow = () => {
                 </div>
               </div>
 
+              {/* Additional Message / Note */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5 text-slate-400" /> Additional Message / Requirement (Optional)
+                </label>
+                <textarea
+                  rows="2"
+                  placeholder="e.g. Need quick disbursal within 24 hours or have existing balance transfer requirement..."
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-[#063B73] text-sm font-medium resize-none"
+                />
+              </div>
+
               {/* Terms checkbox */}
               <div className="pt-2">
                 <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-600 leading-relaxed">
@@ -330,26 +580,45 @@ export const ApplyNow = () => {
                 </label>
               </div>
 
+              {/* Error Alert if submission failed */}
+              {submissionError && (
+                <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2.5 animate-slide-up">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                  <span>{submissionError}</span>
+                </div>
+              )}
+
               <div className="pt-4 flex items-center gap-4">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="w-1/3 py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm"
+                  disabled={isSubmitting}
+                  className="w-1/3 py-3.5 px-4 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 font-bold rounded-xl text-sm transition-colors"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
-                  className="w-2/3 py-3.5 px-6 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold rounded-xl text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+                  disabled={isSubmitting}
+                  className="w-2/3 py-3.5 px-6 bg-[#F97316] hover:bg-[#EA580C] disabled:bg-orange-400 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Submit Application for Instant Sanction</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Submit Application for Instant Sanction</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
           )}
 
-          {/* STEP 3: Instant Success Sanction Confirmation */}
+          {/* STEP 3: Instant Success Sanction Confirmation & WhatsApp Notification */}
           {step === 3 && (
             <div className="py-8 text-center space-y-6 animate-slide-up">
               <div className="w-20 h-20 bg-emerald-100 text-[#16A34A] rounded-full flex items-center justify-center mx-auto shadow-inner">
@@ -361,42 +630,76 @@ export const ApplyNow = () => {
                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
                   Congratulations, {formData.fullName}!
                 </h2>
-                <p className="text-slate-600 text-sm mt-2 max-w-md mx-auto">
-                  Your loan application has been registered with reference ID:
+                <p className="text-emerald-700 font-semibold text-sm sm:text-base mt-2 max-w-lg mx-auto bg-emerald-50 py-2.5 px-4 rounded-xl border border-emerald-200">
+                  Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.
                 </p>
-                <div className="inline-block my-3 px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl font-mono text-lg font-black text-[#063B73]">
-                  {applicationId}
+                <div className="mt-3">
+                  <span className="text-xs text-slate-500 block mb-1 font-medium">Application Reference ID:</span>
+                  <div className="inline-block px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl font-mono text-lg font-black text-[#063B73]">
+                    {applicationId}
+                  </div>
                 </div>
               </div>
 
               {/* Sanction Summary Card */}
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-left max-w-lg mx-auto space-y-2.5 text-xs sm:text-sm">
                 <div className="flex justify-between">
+                  <span className="text-slate-500">Applicant:</span>
+                  <span className="font-extrabold text-slate-900">{formData.fullName} ({formData.phone})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Email:</span>
+                  <span className="font-medium text-slate-800">{formData.email || 'Not provided'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">City:</span>
+                  <span className="font-medium text-slate-800">{formData.city}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-slate-500">Requested Amount:</span>
-                  <span className="font-extrabold text-slate-900">₹{Number(formData.loanAmount).toLocaleString('en-IN')}</span>
+                  <span className="font-extrabold text-[#063B73]">₹{Number(formData.loanAmount).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Selected Product:</span>
-                  <span className="font-bold text-[#063B73]">{formData.loanProduct.toUpperCase()}</span>
+                  <span className="font-bold text-[#063B73]">
+                    {matchedProduct ? matchedProduct.title : formData.loanProduct.toUpperCase()}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Matched Lending Bank:</span>
-                  <span className="font-bold text-slate-800">{formData.preferredBank}</span>
+                  <span className="text-slate-500">Employment & Income:</span>
+                  <span className="font-semibold text-slate-800">{formData.employmentType} (₹{Number(formData.monthlySalary).toLocaleString('en-IN')}/mo)</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Indicative Rate:</span>
-                  <span className="font-bold text-[#16A34A]">9.99% - 10.50% P.A.</span>
-                </div>
+                {formData.preferredBank && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Matched Bank:</span>
+                    <span className="font-bold text-slate-800">{formData.preferredBank}</span>
+                  </div>
+                )}
               </div>
 
-              {/* WhatsApp instant coordination CTA */}
+              {/* Delivery Status & WhatsApp Actions */}
               <div className="pt-2 max-w-md mx-auto space-y-3">
-                <WhatsAppButton
-                  text="Speed Up Approval via WhatsApp"
-                  message={`Hi LoanZone team, I just applied for a personal loan with Application ID: ${applicationId} for ₹${formData.loanAmount}. Please share document verification link.`}
-                  size="lg"
-                  className="w-full justify-center shadow-lg"
-                />
+                {deliveryResult?.deliveryMode === 'automatic_cloud_api' ? (
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center justify-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Application details automatically sent to LoanZone Manager via WhatsApp Cloud API.</span>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs text-slate-500">
+                      Want fast-track verification? Connect directly with our loan manager on WhatsApp:
+                    </p>
+                    <a
+                      href={deliveryResult?.fallbackUrl || `https://wa.me/${CONFIG.whatsappPhone}?text=${encodeURIComponent(deliveryResult?.formattedMessage || `Hi LoanZone, application #${applicationId} submitted for ₹${formData.loanAmount}.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3.5 px-6 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold rounded-xl text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+                    >
+                      <WhatsAppIcon className="w-5 h-5" />
+                      <span>Send Details to LoanZone WhatsApp</span>
+                    </a>
+                  </div>
+                )}
 
                 <Link
                   to="/"

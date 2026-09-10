@@ -14,7 +14,7 @@ export const Settings = () => {
   const [waConfig, setWaConfig] = useState({
     phoneNumberId: '109283746501928',
     wabaId: '382910485720193',
-    senderNumber: '+91 98765 43210',
+    senderNumber: '+91 85229 23635',
     webhookUrl: 'https://api.loanzone.com/v1/whatsapp/webhook',
     verifyToken: 'lz_prod_webhook_token_9921',
     dailyLimit: '5,000 Messages / 24 hrs'
