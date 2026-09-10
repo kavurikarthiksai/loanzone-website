@@ -684,29 +684,12 @@ Please contact the applicant as soon as possible.`;
                 )}
               </div>
 
-              {/* Delivery Status & WhatsApp Actions */}
+              {/* Delivery Status */}
               <div className="pt-2 max-w-md mx-auto space-y-3">
-                {deliveryResult?.deliveryMode === 'automatic_cloud_api' ? (
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center justify-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Application details automatically sent to LoanZone Manager via WhatsApp Cloud API.</span>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-xs text-slate-500">
-                      Want fast-track verification? Connect directly with our loan manager on WhatsApp:
-                    </p>
-                    <a
-                      href={deliveryResult?.fallbackUrl || `https://wa.me/${CONFIG.whatsappPhone}?text=${encodeURIComponent(deliveryResult?.formattedMessage || `Hi LoanZone, application #${applicationId} submitted for ₹${formData.loanAmount}.`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full py-3.5 px-6 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold rounded-xl text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
-                    >
-                      <WhatsAppIcon className="w-5 h-5" />
-                      <span>Send Details to LoanZone WhatsApp</span>
-                    </a>
-                  </div>
-                )}
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Application details automatically sent to LoanZone Manager securely.</span>
+                </div>
 
                 <Link
                   to="/"

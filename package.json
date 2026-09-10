@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"CLIENT,SERVER\" -c \"cyan.bold,green.bold\" \"vite\" \"node server/index.js\"",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"CLIENT,SERVER\" -c \"cyan.bold,green.bold\" \"vite\" \"node api/index.js\"",
     "dev:client": "vite",
-    "server": "node server/index.js",
+    "server": "node api/index.js",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"

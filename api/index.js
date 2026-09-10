@@ -86,7 +86,7 @@ const isValidMobile = (phone) => {
 
 // API Status & Configuration Endpoint
 app.get('/api/health', (req, res) => {
-  const ownerNumber = process.env.OWNER_WHATSAPP_NUMBER || '918522923635';
+  const ownerNumber = process.env.OWNER_WHATSAPP_NUMBER || '9133258030';
   const hasCloudApi = !!(process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID);
 
   res.json({
@@ -158,7 +158,7 @@ app.post('/api/apply', async (req, res) => {
     }
 
     const sanitizedApplicantPhone = sanitizePhoneNumber(mobile);
-    const ownerNumber = sanitizePhoneNumber(process.env.OWNER_WHATSAPP_NUMBER || '918522923635');
+    const ownerNumber = sanitizePhoneNumber(process.env.OWNER_WHATSAPP_NUMBER || '9133258030');
     const applicationId = 'LZ-' + Math.floor(100000 + Math.random() * 900000);
 
     // Format WhatsApp message
@@ -176,73 +176,54 @@ app.post('/api/apply', async (req, res) => {
 
     const fallbackUrl = `https://wa.me/${ownerNumber}?text=${encodeURIComponent(formattedMsg)}`;
 
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    // Forward to the Admin App (LoanSoftware)
+    try {
+      const adminAppUrl = process.env.ADMIN_APP_URL || 'http://localhost:4000';
+      const externalSendUrl = `${adminAppUrl}/api/whatsapp/external-send`;
+      const apiKey = process.env.EXTERNAL_API_KEY || 'LoanZoneSecret2024';
+      
+      const response = await fetch(externalSendUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone: ownerNumber, // The admin number receiving the notification
+          message: formattedMsg,
+          apiKey: apiKey
+        })
+      });
 
-    // If Meta Cloud API credentials are provided, send directly via Official Cloud API
-    if (accessToken && phoneNumberId) {
-      try {
-        const response = await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/messages`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            recipient_type: 'individual',
-            to: ownerNumber,
-            type: 'text',
-            text: {
-              preview_url: false,
-              body: formattedMsg
-            }
-          })
-        });
+      const data = await response.json();
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          console.error('[WhatsApp Cloud API Error]:', data);
-          return res.status(502).json({
-            success: false,
-            deliveryMode: 'api_failed',
-            applicationId,
-            error: data?.error?.message || 'WhatsApp notification service failed to deliver message.',
-            fallbackUrl
-          });
-        }
-
-        return res.json({
-          success: true,
-          deliveryMode: 'automatic_cloud_api',
-          applicationId,
-          message: 'Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.',
-          messageId: data?.messages?.[0]?.id || null
-        });
-      } catch (apiErr) {
-        console.error('[WhatsApp Network Error]:', apiErr);
-        return res.status(500).json({
+      if (!response.ok) {
+        console.error('[Admin App API Error]:', data);
+        return res.status(502).json({
           success: false,
           deliveryMode: 'api_failed',
           applicationId,
-          error: 'Network connection error while contacting WhatsApp API.',
+          error: data.error || 'Failed to trigger Admin App WhatsApp API.',
           fallbackUrl
         });
       }
-    }
 
-    // Fallback mode for development/demo when Cloud API credentials are not yet set
-    // Informs the frontend clearly that API credentials are not configured,
-    // and supplies the pre-filled WhatsApp direct link.
-    return res.json({
-      success: true,
-      deliveryMode: 'fallback_direct_link',
-      applicationId,
-      message: 'Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.',
-      fallbackUrl,
-      formattedMessage: formattedMsg
-    });
+      return res.json({
+        success: true,
+        deliveryMode: 'automatic_cloud_api', // Keeps UI success green
+        applicationId,
+        message: 'Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.',
+        messageId: data.messageId
+      });
+    } catch (apiErr) {
+      console.error('[Admin App Network Error]:', apiErr);
+      return res.status(500).json({
+        success: false,
+        deliveryMode: 'api_failed',
+        applicationId,
+        error: 'Network connection error while contacting Admin App on Port 4000.',
+        fallbackUrl
+      });
+    }
 
   } catch (err) {
     console.error('[Server Error]:', err);
