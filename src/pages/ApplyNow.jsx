@@ -154,50 +154,11 @@ export const ApplyNow = () => {
       return;
     }
 
-    const appRef = 'LZ-' + Math.floor(100000 + Math.random() * 900000);
+    setIsSubmitting(true);
+
     const loanTypeTitle = matchedProduct 
       ? matchedProduct.title 
       : (loanProducts.find(p => p.id === formData.loanProduct)?.title || formData.loanProduct);
-
-    const formattedAmount = Number(formData.loanAmount || 0).toLocaleString('en-IN');
-    const formattedIncome = Number(formData.monthlySalary || 0).toLocaleString('en-IN');
-    const bankName = matchedBank ? matchedBank.name : (formData.preferredBank || 'Best Matching Bank');
-
-    // Build the complete WhatsApp message with all applicant & loan details
-    const formattedMsg = `🔔 NEW LOAN APPLICATION [Ref: ${appRef}]
-
-Applicant Details:
-
-👤 Name: ${formData.fullName}
-📱 Mobile: ${formData.phone}
-📧 Email: ${formData.email || 'Not provided'}
-🏙️ City: ${formData.city}
-
-Loan Details:
-
-💰 Loan Type: ${loanTypeTitle}
-💵 Required Amount: ₹${formattedAmount}
-💼 Employment Type: ${formData.employmentType}
-💰 Monthly Income: ₹${formattedIncome}
-🏦 Preferred Bank: ${bankName}
-🎯 Purpose: ${formData.purpose || 'Personal / Debt Consolidation'}
-
-📝 Message:
-${formData.message?.trim() || formData.purpose || 'Fast Track Instant Application'}
-
-Please contact the applicant as soon as possible.`;
-
-    const ownerPhone = CONFIG.whatsappPhone || '918522923635';
-    const directWhatsAppUrl = `https://wa.me/${ownerPhone}?text=${encodeURIComponent(formattedMsg)}`;
-
-    // Directly open WhatsApp on submit click with complete details
-    try {
-      window.open(directWhatsAppUrl, '_blank', 'noopener,noreferrer');
-    } catch (popupErr) {
-      console.warn('Popup blocked or handled by browser', popupErr);
-    }
-
-    setIsSubmitting(true);
 
     const payload = {
       fullName: formData.fullName,
@@ -209,9 +170,8 @@ Please contact the applicant as soon as possible.`;
       employmentType: formData.employmentType,
       monthlyIncome: formData.monthlySalary,
       message: formData.message || formData.purpose || 'Fast Track Instant Application',
-      preferredBank: bankName,
-      purpose: formData.purpose,
-      applicationId: appRef
+      preferredBank: formData.preferredBank,
+      purpose: formData.purpose
     };
 
     try {
@@ -226,35 +186,52 @@ Please contact the applicant as soon as possible.`;
       const result = await response.json();
 
       if (response.ok && result.success) {
-        const finalAppRef = result.applicationId || appRef;
-        setApplicationId(finalAppRef);
-        setDeliveryResult({
-          ...result,
-          fallbackUrl: directWhatsAppUrl,
-          formattedMessage: formattedMsg
-        });
-        setStep(3);
-        addToast("Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.", "success");
-      } else {
+        const appRef = result.applicationId || ('LZ-' + Math.floor(100000 + Math.random() * 900000));
         setApplicationId(appRef);
-        setDeliveryResult({
-          success: true,
-          deliveryMode: 'fallback_direct_link',
-          applicationId: appRef,
-          fallbackUrl: directWhatsAppUrl,
-          formattedMessage: formattedMsg
-        });
+        setDeliveryResult(result);
         setStep(3);
-        addToast("Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.", "success");
+        addToast(result.message || "Thank you! Your loan application has been submitted successfully. Our team will contact you shortly.", "success");
+      } else {
+        // Backend returned failure
+        const errMsg = result.error || 'Failed to submit application. Please check your details and try again.';
+        setSubmissionError(errMsg);
+        addToast(errMsg, "error");
       }
     } catch (err) {
       console.warn('[Apply API Offline / Fallback]', err);
+      // Resilient client-side fallback if backend server is unreachable
+      const appRef = 'LZ-' + Math.floor(100000 + Math.random() * 900000);
+      const formattedAmount = Number(formData.loanAmount || 0).toLocaleString('en-IN');
+      const formattedIncome = Number(formData.monthlySalary || 0).toLocaleString('en-IN');
+      const formattedMsg = `🔔 NEW LOAN APPLICATION
+
+Applicant Details:
+
+👤 Name: ${formData.fullName}
+📱 Mobile: ${formData.phone}
+📧 Email: ${formData.email || 'Not provided'}
+🏙️ City: ${formData.city}
+
+Loan Details:
+
+💰 Loan Type: ${loanTypeTitle}
+💵 Required Amount: ₹${formattedAmount}
+💼 Employment Type: ${formData.employmentType}
+💰 Monthly Income: ₹${formattedIncome}
+
+📝 Message:
+${formData.message || formData.purpose || 'Fast Track Instant Application'}
+
+Please contact the applicant as soon as possible.`;
+
+      const fallbackUrl = `https://wa.me/${CONFIG.whatsappPhone}?text=${encodeURIComponent(formattedMsg)}`;
+      
       setApplicationId(appRef);
       setDeliveryResult({
         success: true,
         deliveryMode: 'fallback_direct_link',
         applicationId: appRef,
-        fallbackUrl: directWhatsAppUrl,
+        fallbackUrl,
         formattedMessage: formattedMsg
       });
       setStep(3);
@@ -598,7 +575,14 @@ Please contact the applicant as soon as possible.`;
                     className="mt-0.5 w-4 h-4 rounded text-[#063B73] focus:ring-[#063B73]"
                   />
                   <span>
-                    I authorize LoanZone and its RBI-regulated partner lending institutions to evaluate my credit report and contact me via Phone, SMS, or WhatsApp regarding loan offers.
+                    I authorize LoanZone and its RBI-regulated partner lending institutions to evaluate my credit report and contact me via Phone, SMS, or WhatsApp regarding loan offers, in accordance with the{' '}
+                    <Link to="/terms-and-conditions" target="_blank" className="text-[#063B73] font-bold underline hover:text-[#0B5ED7]">
+                      Terms & Conditions
+                    </Link>{' '}
+                    and{' '}
+                    <Link to="/privacy-policy" target="_blank" className="text-[#063B73] font-bold underline hover:text-[#0B5ED7]">
+                      Privacy Policy
+                    </Link>.
                   </span>
                 </label>
               </div>

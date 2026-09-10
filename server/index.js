@@ -16,6 +16,7 @@ const PORT = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 
+// Helper function to format WhatsApp message as requested
 export const formatLoanApplicationMessage = ({
   fullName,
   mobile,
@@ -25,17 +26,13 @@ export const formatLoanApplicationMessage = ({
   loanAmount,
   employmentType,
   monthlyIncome,
-  preferredBank,
-  purpose,
-  message,
-  applicationId
+  message
 }) => {
   const formattedAmount = Number(loanAmount || 0).toLocaleString('en-IN');
   const formattedIncome = Number(monthlyIncome || 0).toLocaleString('en-IN');
   const userMessage = message && message.trim() ? message.trim() : 'Application submitted via LoanZone Fast Track portal.';
-  const refHeader = applicationId ? ` [Ref: ${applicationId}]` : '';
 
-  return `🔔 NEW LOAN APPLICATION${refHeader}
+  return `🔔 NEW LOAN APPLICATION
 
 Applicant Details:
 
@@ -49,7 +46,7 @@ Loan Details:
 💰 Loan Type: ${loanType}
 💵 Required Amount: ₹${formattedAmount}
 💼 Employment Type: ${employmentType}
-💰 Monthly Income: ₹${formattedIncome}${preferredBank ? `\n🏦 Preferred Bank: ${preferredBank}` : ''}${purpose ? `\n🎯 Purpose: ${purpose}` : ''}
+💰 Monthly Income: ₹${formattedIncome}
 
 📝 Message:
 ${userMessage}
@@ -174,10 +171,7 @@ app.post('/api/apply', async (req, res) => {
       loanAmount: Number(loanAmount),
       employmentType: employmentType.trim(),
       monthlyIncome: Number(monthlyIncome),
-      preferredBank: preferredBank || '',
-      purpose: purpose || '',
-      message: message || purpose || 'Fast Track Instant Application',
-      applicationId
+      message: message || purpose || 'Fast Track Instant Application'
     });
 
     const fallbackUrl = `https://wa.me/${ownerNumber}?text=${encodeURIComponent(formattedMsg)}`;

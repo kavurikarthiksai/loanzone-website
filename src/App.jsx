@@ -13,6 +13,9 @@ import { Eligibility } from './pages/Eligibility';
 import { FAQs } from './pages/FAQs';
 import { Contact } from './pages/Contact';
 import { ApplyNow } from './pages/ApplyNow';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { TermsAndConditions } from './pages/TermsAndConditions';
+import { SecurityCompliance } from './pages/SecurityCompliance';
 
 // Admin Pages
 import { AdminLogin } from './pages/admin/AdminLogin';
@@ -36,6 +39,9 @@ export default function App() {
         <Route path="/faqs" element={<FAQs />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/apply-now" element={<ApplyNow />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/security-compliance" element={<SecurityCompliance />} />
       </Route>
 
       {/* Admin Authentication */}

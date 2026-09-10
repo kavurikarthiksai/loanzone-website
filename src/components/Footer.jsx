@@ -107,9 +107,15 @@ export const Footer = () => {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <p>© 2026 LoanZone. All rights reserved.</p>
           <div className="flex items-center gap-6">
-            <span className="hover:text-slate-300 cursor-pointer">Privacy Policy</span>
-            <span className="hover:text-slate-300 cursor-pointer">Terms & Conditions</span>
-            <span className="hover:text-slate-300 cursor-pointer">Security & Compliance</span>
+            <Link to="/privacy-policy" className="hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms-and-conditions" className="hover:text-white transition-colors">
+              Terms & Conditions
+            </Link>
+            <Link to="/security-compliance" className="hover:text-white transition-colors">
+              Security & Compliance
+            </Link>
           </div>
         </div>
 
